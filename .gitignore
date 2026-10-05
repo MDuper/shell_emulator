@@ -1,0 +1,34 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Visual Studio Code
+.vscode/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Java
+*.class
+out/
+build/
+
+# Gradle cache
+.gradle/
+
+# Binary dependencies
+*.jar
+
+# Gradle Wrapper is required for building the project
+!gradle/wrapper/gradle-wrapper.jar
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db

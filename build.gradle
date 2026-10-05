@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'ru.mirea'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ['src']
+    }
+
+    test {
+        java.srcDirs = ['tests']
+    }
+}
+
+application {
+    mainClass = 'emulator.Main'
+}
+
+test {
+    useJUnitPlatform()
+}
