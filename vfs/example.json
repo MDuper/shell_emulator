@@ -1,1 +1,59 @@
-{}
+{
+  "type": "DIRECTORY",
+  "children": {
+    "home": {
+      "type": "DIRECTORY",
+      "children": {
+        "user": {
+          "type": "DIRECTORY",
+          "children": {
+            "readme.txt": {
+              "type": "FILE",
+              "encoding": "TEXT",
+              "content": "Welcome to the virtual file system."
+            },
+            "docs": {
+              "type": "DIRECTORY",
+              "children": {
+                "notes.txt": {
+                  "type": "FILE",
+                  "encoding": "TEXT",
+                  "content": "Study Java and configuration management."
+                }
+              }
+            },
+            "images": {
+              "type": "DIRECTORY",
+              "children": {
+                "logo.bin": {
+                  "type": "FILE",
+                  "encoding": "BASE64",
+                  "content": "AAECAwQ="
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tmp": {
+      "type": "DIRECTORY",
+      "children": {
+        "data.txt": {
+          "type": "FILE",
+          "encoding": "TEXT",
+          "content": "Temporary data."
+        },
+        "old.log": {
+          "type": "FILE",
+          "encoding": "TEXT",
+          "content": "Old log entry."
+        }
+      }
+    },
+    "empty": {
+      "type": "DIRECTORY",
+      "children": {}
+    }
+  }
+}

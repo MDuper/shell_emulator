@@ -3,6 +3,10 @@ package emulator;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.swing.SwingUtilities;
+import java.io.IOException;
+import emulator.vfs.VfsLoader;
+import emulator.vfs.VfsNode;
+import emulator.vfs.VirtualFileSystem;
 
 public final class Main {
     private static final int EXPECTED_ARGUMENT_COUNT = 2;
@@ -41,10 +45,42 @@ public final class Main {
             return;
         }
 
+        VfsNode root = loadVfs(config.getVfsPath());
+
+        if (root == null) {
+            return;
+        }
+
+        VirtualFileSystem virtualFileSystem =
+                new VirtualFileSystem(root);
+
         SwingUtilities.invokeLater(() -> {
             EmulatorWindow window =
-                    new EmulatorWindow(config);
+                    new EmulatorWindow(
+                            config,
+                            virtualFileSystem
+                    );
             window.setVisible(true);
         });
+    }
+
+    private static VfsNode loadVfs(Path path) {
+        try {
+            VfsLoader loader = new VfsLoader();
+            VfsNode root = loader.load(path);
+
+            System.out.println(
+                    "VFS загружена. Объектов в корне: "
+                            + root.getChildren().size()
+            );
+
+            return root;
+        } catch (IOException exception) {
+            System.err.println(
+                    "Ошибка загрузки VFS: "
+                            + exception.getMessage()
+            );
+            return null;
+        }
     }
 }

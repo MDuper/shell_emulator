@@ -1,0 +1,20 @@
+{
+  "type": "DIRECTORY",
+  "children": {
+    "first.txt": {
+      "type": "FILE",
+      "encoding": "TEXT",
+      "content": "First file."
+    },
+    "second.txt": {
+      "type": "FILE",
+      "encoding": "TEXT",
+      "content": "Second file."
+    },
+    "binary.bin": {
+      "type": "FILE",
+      "encoding": "BASE64",
+      "content": "AAECAwQ="
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "type": "FILE",
+  "encoding": "TEXT",
+  "content": "Root cannot be a file."
+}

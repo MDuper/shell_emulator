@@ -1,3 +1,5 @@
 ls
-cd $HOME
 ls /tmp
+cd /home/user
+ls
+unknown

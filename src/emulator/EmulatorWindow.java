@@ -14,6 +14,7 @@ import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import java.awt.BorderLayout;
+import emulator.vfs.VirtualFileSystem;
 
 public final class EmulatorWindow extends JFrame {
 
@@ -26,11 +27,16 @@ public final class EmulatorWindow extends JFrame {
     private final JTextArea outputArea;
     private final JTextField inputField;
     private final EmulatorConfig config;
+    private final VirtualFileSystem virtualFileSystem;
 
-    public EmulatorWindow(EmulatorConfig config) {
+    public EmulatorWindow(
+            EmulatorConfig config,
+            VirtualFileSystem virtualFileSystem
+    ) {
         super(createTitle());
 
         this.config = config;
+        this.virtualFileSystem = virtualFileSystem;
 
         outputArea = new JTextArea();
         outputArea.setEditable(false);
@@ -222,6 +228,21 @@ public final class EmulatorWindow extends JFrame {
                 "Стартовый скрипт: "
                         + config.getStartupScriptPath()
                         +"\n"
+        );
+
+        outputArea.append(
+                "Текущий каталог VFS: "
+                        + virtualFileSystem.getCurrentPath()
+                        + "\n"
+        );
+
+        outputArea.append(
+                "Объектов в корне VFS: "
+                        + virtualFileSystem
+                        .getRoot()
+                        .getChildren()
+                        .size()
+                        + "\n"
         );
     }
 }
