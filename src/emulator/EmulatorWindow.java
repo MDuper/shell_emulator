@@ -1,5 +1,7 @@
 package emulator;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
@@ -14,6 +16,7 @@ import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import java.awt.BorderLayout;
+import emulator.vfs.VfsNode;
 import emulator.vfs.VirtualFileSystem;
 
 public final class EmulatorWindow extends JFrame {
@@ -21,8 +24,14 @@ public final class EmulatorWindow extends JFrame {
     private static final int WINDOW_WIDTH = 800;
     private static final int WINDOW_HEIGHT = 500;
     private static final int EXIT_ARGUMENT_COUNT = 0;
+    private static final int CD_ARGUMENT_COUNT = 1;
+    private static final int LS_MAX_ARGUMENT_COUNT = 1;
+    private static final int DU_MAX_ARGUMENT_COUNT = 1;
     private static final Pattern ENVIRONMENT_VARIABLE_PATTERN =
             Pattern.compile("\\$([A-Za-z_][A-Za-z0-9_]*)");
+    private static final int DATE_ARGUMENT_COUNT = 0;
+    private static final DateTimeFormatter DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final JTextArea outputArea;
     private final JTextField inputField;
@@ -154,32 +163,20 @@ public final class EmulatorWindow extends JFrame {
         );
 
         return switch (command) {
-            case "ls", "cd" -> {
-                executeStub(command, arguments);
-                yield true;
-            }
+            case "ls" -> executeLs(arguments);
+            case "cd" -> executeCd(arguments);
+            case "date" -> executeDate(arguments);
+            case "du" -> executeDu(arguments);
             case "exit" -> executeExit(arguments);
             default -> {
                 outputArea.append(
-                    "Ошибка: неизвестная команда "
-                            + command
-                            + "\n"
+                        "Ошибка: неизвестная команда "
+                                + command
+                                + "\n"
                 );
                 yield false;
             }
         };
-    }
-
-    private void executeStub(
-            String command,
-            String[] arguments
-    ) {
-        outputArea.append("Команда: " + command + "\n");
-        outputArea.append(
-                "Аргументы: "
-                    + String.join(" ", arguments)
-                    + "\n"
-        );
     }
 
     private boolean executeExit(String[] arguments) {
@@ -191,6 +188,143 @@ public final class EmulatorWindow extends JFrame {
         }
 
         dispose();
+        return true;
+    }
+
+    public boolean executeCd(String[] arguments) {
+        if (arguments.length != CD_ARGUMENT_COUNT) {
+            outputArea.append(
+                    "Ошибка: cd ожидает один аргумент\n"
+            );
+            return false;
+        }
+
+        String path = arguments[0];
+        VfsNode targetNode = virtualFileSystem.resolve(path);
+
+        if (targetNode == null) {
+            outputArea.append(
+                    "Ошибка: путь не найден: "
+                            + path
+                            + "\n"
+            );
+            return false;
+        }
+
+        if (!targetNode.isDirectory()) {
+            outputArea.append(
+                    "Ошибка: не является каталогом: "
+                            + path
+                            + "\n"
+            );
+            return false;
+        }
+
+        virtualFileSystem.changeDirectory(path);
+
+        outputArea.append(
+                "Текущий каталог: "
+                        + virtualFileSystem.getCurrentPath()
+                        + "\n"
+        );
+
+        return true;
+    }
+
+    public boolean executeLs(String[] arguments) {
+        if (arguments.length > LS_MAX_ARGUMENT_COUNT) {
+            outputArea.append(
+                    "Ошибка: ls принимает не более одного аргумента\n"
+            );
+            return false;
+        }
+
+        String path = "";
+
+        if (arguments.length == LS_MAX_ARGUMENT_COUNT) {
+            path = arguments[0];
+        }
+
+        VfsNode targerNode =  virtualFileSystem.resolve(path);
+
+        if (targerNode == null) {
+            outputArea.append(
+                    "Ошибка: путь не найден: "
+                            + path
+                            + "\n"
+            );
+            return false;
+        }
+
+        if (targerNode.isFile()) {
+            outputArea.append(path + "\n");
+        }
+
+        for (String name : targerNode.getChildren().keySet()) {
+            outputArea.append(name + "\n");
+        }
+
+        return true;
+    }
+
+    public boolean executeDate(String[] arguments) {
+        if (arguments.length != DATE_ARGUMENT_COUNT) {
+            outputArea.append(
+                    "Ошибка: date не принимает аргументы\n"
+            );
+            return false;
+        }
+
+        LocalDateTime currentDateTime = LocalDateTime.now();
+
+        String formatDateTime =
+                currentDateTime.format(DATE_FORMATTER);
+
+        outputArea.append(formatDateTime + "\n");
+
+        return true;
+    }
+
+    public boolean executeDu(String[] arguments) {
+        if (arguments.length > DU_MAX_ARGUMENT_COUNT) {
+            outputArea.append(
+                    "Ошибка: du принимает не более одного аргумента\n"
+            );
+            return false;
+        }
+
+        String path = "";
+
+        if (arguments.length == DU_MAX_ARGUMENT_COUNT) {
+            path = arguments[0];
+        }
+
+        VfsNode targetNode = virtualFileSystem.resolve(path);
+
+        if (targetNode == null) {
+            outputArea.append(
+                    "Ошибка: путь не найден: "
+                            + path
+                            + "\n"
+            );
+            return false;
+        }
+
+        long size = virtualFileSystem.calculateSize(targetNode);
+
+        String displayedPath = path;
+
+        if (displayedPath.isBlank()) {
+            displayedPath = virtualFileSystem.getCurrentPath();
+        }
+
+        outputArea.append(
+                size
+                        + " байт\t"
+                        + displayedPath
+                        + "\n"
+        );
+
         return true;
     }
 

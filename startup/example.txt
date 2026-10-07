@@ -1,5 +1,14 @@
 ls
-ls /tmp
+ls /home
 cd /home/user
+ls .
+du readme.txt
+cd docs
 ls
+du .
+cd ..
+date
+du /home
+cd /
+ls /tmp
 unknown

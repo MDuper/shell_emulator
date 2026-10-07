@@ -1,3 +1,3 @@
 #!/bin/sh
 
-./run.sh vfs/multiple-files.json startup/example.txt
+./run.sh vfs/multiple-files.json startup/exit.txt
