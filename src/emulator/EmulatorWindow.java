@@ -27,11 +27,32 @@ public final class EmulatorWindow extends JFrame {
     private static final int CD_ARGUMENT_COUNT = 1;
     private static final int LS_MAX_ARGUMENT_COUNT = 1;
     private static final int DU_MAX_ARGUMENT_COUNT = 1;
+    private static final int CP_ARGUMENT_COUNT = 2;
+    private static final int CP_RECURSIVE_ARGUMENT_COUNT = 3;
+    private static final String RECURSIVE_OPTION = "-r";
+    private static final int RM_ARGUMENT_COUNT = 1;
+    private static final int RM_RECURSIVE_ARGUMENT_COUNT = 2;
+
     private static final Pattern ENVIRONMENT_VARIABLE_PATTERN =
             Pattern.compile("\\$([A-Za-z_][A-Za-z0-9_]*)");
     private static final int DATE_ARGUMENT_COUNT = 0;
     private static final DateTimeFormatter DATE_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    private static final int HELP_ARGUMENT_COUNT = 0;
+    private static final String HELP_TEXT = """
+        Доступные команды:
+          ls [PATH]                     показать содержимое каталога
+          cd PATH                       перейти в каталог
+          date                          показать дату и время
+          du [PATH]                     показать размер файла или каталога
+          cp SOURCE DESTINATION         скопировать файл
+          cp -r SOURCE DESTINATION      скопировать каталог
+          rm PATH                       удалить файл
+          rm -r PATH                    удалить каталог
+          help                          показать список команд
+          exit                          завершить работу эмулятора
+        """;
 
     private final JTextArea outputArea;
     private final JTextField inputField;
@@ -84,7 +105,7 @@ public final class EmulatorWindow extends JFrame {
         inputField.setText("");
     }
 
-    private boolean executeStartupComand(String commandLine) {
+    private boolean executeStartupCommand(String commandLine) {
         String input = commandLine.trim();
 
         if (input.isEmpty()) {
@@ -107,7 +128,7 @@ public final class EmulatorWindow extends JFrame {
                     );
             for (String command : commands) {
                 boolean successful =
-                        executeStartupComand(command);
+                        executeStartupCommand(command);
 
                 if (!successful) {
                     outputArea.append(
@@ -167,6 +188,9 @@ public final class EmulatorWindow extends JFrame {
             case "cd" -> executeCd(arguments);
             case "date" -> executeDate(arguments);
             case "du" -> executeDu(arguments);
+            case "cp" -> executeCp(arguments);
+            case "rm" -> executeRm(arguments);
+            case "help" -> executeHelp(arguments);
             case "exit" -> executeExit(arguments);
             default -> {
                 outputArea.append(
@@ -191,7 +215,7 @@ public final class EmulatorWindow extends JFrame {
         return true;
     }
 
-    public boolean executeCd(String[] arguments) {
+    private boolean executeCd(String[] arguments) {
         if (arguments.length != CD_ARGUMENT_COUNT) {
             outputArea.append(
                     "Ошибка: cd ожидает один аргумент\n"
@@ -231,7 +255,7 @@ public final class EmulatorWindow extends JFrame {
         return true;
     }
 
-    public boolean executeLs(String[] arguments) {
+    private boolean executeLs(String[] arguments) {
         if (arguments.length > LS_MAX_ARGUMENT_COUNT) {
             outputArea.append(
                     "Ошибка: ls принимает не более одного аргумента\n"
@@ -245,9 +269,9 @@ public final class EmulatorWindow extends JFrame {
             path = arguments[0];
         }
 
-        VfsNode targerNode =  virtualFileSystem.resolve(path);
+        VfsNode targetNode =  virtualFileSystem.resolve(path);
 
-        if (targerNode == null) {
+        if (targetNode == null) {
             outputArea.append(
                     "Ошибка: путь не найден: "
                             + path
@@ -256,18 +280,19 @@ public final class EmulatorWindow extends JFrame {
             return false;
         }
 
-        if (targerNode.isFile()) {
+        if (targetNode.isFile()) {
             outputArea.append(path + "\n");
+            return true;
         }
 
-        for (String name : targerNode.getChildren().keySet()) {
+        for (String name : targetNode.getChildren().keySet()) {
             outputArea.append(name + "\n");
         }
 
         return true;
     }
 
-    public boolean executeDate(String[] arguments) {
+    private boolean executeDate(String[] arguments) {
         if (arguments.length != DATE_ARGUMENT_COUNT) {
             outputArea.append(
                     "Ошибка: date не принимает аргументы\n"
@@ -285,7 +310,7 @@ public final class EmulatorWindow extends JFrame {
         return true;
     }
 
-    public boolean executeDu(String[] arguments) {
+    private boolean executeDu(String[] arguments) {
         if (arguments.length > DU_MAX_ARGUMENT_COUNT) {
             outputArea.append(
                     "Ошибка: du принимает не более одного аргумента\n"
@@ -324,6 +349,143 @@ public final class EmulatorWindow extends JFrame {
                         + displayedPath
                         + "\n"
         );
+
+        return true;
+    }
+
+    private boolean executeCp(String[] arguments) {
+        boolean regularMode =
+                arguments.length == CP_ARGUMENT_COUNT
+                        && !arguments[0].equals(RECURSIVE_OPTION);
+
+        boolean recursiveMode =
+                arguments.length == CP_RECURSIVE_ARGUMENT_COUNT
+                        && arguments[0].equals(RECURSIVE_OPTION);
+
+        if (!regularMode && !recursiveMode) {
+            outputArea.append(
+                    "Ошибка: используйте cp SOURCE DESTINATION "
+                            + "или cp -r SOURCE DESTINATION\n"
+            );
+            return false;
+        }
+
+        int sourceIndex = recursiveMode ? 1 : 0;
+        int destinationIndex = sourceIndex + 1;
+
+        String sourcePath = arguments[sourceIndex];
+        String destinationPath = arguments[destinationIndex];
+
+        VfsNode sourceNode =
+                virtualFileSystem.resolve(sourcePath);
+
+        if (sourceNode == null) {
+            outputArea.append(
+                    "Ошибка: исходный путь не найден: "
+                            + sourcePath
+                            + "\n"
+            );
+            return false;
+        }
+
+        if (sourceNode.isDirectory() && !recursiveMode) {
+            outputArea.append(
+                    "Ошибка: для копирования каталога "
+                            + "требуется флаг -r\n"
+            );
+            return false;
+        }
+
+        if (!virtualFileSystem.copy(
+                sourcePath,
+                destinationPath,
+                recursiveMode
+        )) {
+            outputArea.append(
+                    "Ошибка: не удалось скопировать в "
+                            + destinationPath
+                            + "\n"
+            );
+            return false;
+        }
+
+        outputArea.append(
+                "Скопировано: "
+                        + sourcePath
+                        + " -> "
+                        + destinationPath
+                        + "\n"
+        );
+
+        return true;
+    }
+
+    private boolean executeRm(String[] arguments) {
+        boolean regularMode =
+                arguments.length == RM_ARGUMENT_COUNT
+                    && !arguments[0].equals(RECURSIVE_OPTION);
+
+        boolean recursiveMode =
+                arguments.length == RM_RECURSIVE_ARGUMENT_COUNT
+                        && arguments[0].equals(RECURSIVE_OPTION);
+
+        if (!regularMode && !recursiveMode) {
+            outputArea.append(
+                    "Ошибка: используйте rm PATH "
+                            + "или rm -r PATH\n"
+            );
+            return false;
+        }
+
+        int pathIndex = recursiveMode ? 1 : 0;
+        String path = arguments[pathIndex];
+
+        VfsNode targetNode = virtualFileSystem.resolve(path);
+
+        if (targetNode == null) {
+            outputArea.append(
+                    "Ошибка: путь не найден: "
+                            + path
+                            + "\n"
+            );
+            return false;
+        }
+
+        if (targetNode.isDirectory() && !recursiveMode) {
+            outputArea.append(
+                    "Ошибка: для удаления каталога "
+                            + "требуется флаг -r\n"
+            );
+            return false;
+        }
+
+        if (!virtualFileSystem.remove(path, recursiveMode)) {
+            outputArea.append(
+                    "Ошибка: не удалось удалить "
+                            + path
+                            + "\n"
+            );
+            return false;
+        }
+
+        outputArea.append(
+                "Удалено: "
+                        + path
+                        + "\n"
+        );
+
+        return true;
+    }
+
+    private boolean executeHelp(String[] arguments) {
+        if (arguments.length != HELP_ARGUMENT_COUNT) {
+            outputArea.append(
+                    "Ошибка: help не принимает аргументы\n"
+            );
+            return false;
+        }
+
+        outputArea.append(HELP_TEXT);
 
         return true;
     }

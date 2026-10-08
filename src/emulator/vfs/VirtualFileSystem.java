@@ -30,7 +30,10 @@ public final class VirtualFileSystem {
     }
 
     public VfsNode resolve(String path) {
-        List<String> pathParts = normalizePath(path);
+        return resolveParts(normalizePath(path));
+    }
+
+    private VfsNode resolveParts(List<String> pathParts) {
         VfsNode currentNode = root;
 
         for (String part : pathParts) {
@@ -46,6 +49,28 @@ public final class VirtualFileSystem {
         }
 
         return currentNode;
+    }
+
+    private VfsNode resolveParent(String path) {
+        List<String> pathParts = normalizePath(path);
+
+        if (pathParts.isEmpty()) {
+            return null;
+        }
+
+        pathParts.remove(pathParts.size() - 1);
+
+        return resolveParts(pathParts);
+    }
+
+    private String getName(String path) {
+        List<String> pathParts = normalizePath(path);
+
+        if (pathParts.isEmpty()) {
+            return "";
+        }
+
+        return pathParts.get(pathParts.size() - 1);
     }
 
     private List<String> normalizePath(String path) {
@@ -105,5 +130,93 @@ public final class VirtualFileSystem {
         }
 
         return totalSize;
+    }
+
+    public boolean copy(
+            String sourcePath,
+            String destinationPath,
+            boolean recursive
+    ) {
+        VfsNode sourceNode = resolve(sourcePath);
+
+        if (sourceNode == null) {
+            return false;
+        }
+
+        if (sourceNode.isDirectory() && !recursive) {
+            return false;
+        }
+
+        VfsNode destinationNode = resolve(destinationPath);
+        VfsNode destinationParent;
+        String destinationName;
+
+        if (destinationNode != null
+                && destinationNode.isDirectory()) {
+            destinationParent = destinationNode;
+            destinationName = getName(sourcePath);
+        } else {
+            destinationParent = resolveParent(destinationPath);
+            destinationName = getName(destinationPath);
+        }
+
+        if (destinationParent == null
+                || !destinationParent.isDirectory()
+                || destinationName.isBlank()) {
+            return false;
+        }
+
+        destinationParent.getChildren().put(
+                destinationName,
+                sourceNode.deepCopy()
+        );
+
+        return true;
+    }
+
+    public boolean remove(
+            String path,
+            boolean recursive
+    ) {
+        List<String> pathParts = normalizePath(path);
+
+        if (pathParts.isEmpty()
+                || containsCurrentDirectory(pathParts)) {
+            return false;
+        }
+
+        VfsNode targetNode = resolveParts(pathParts);
+
+        if (targetNode == null) {
+            return false;
+        }
+
+        if (targetNode.isDirectory() && !recursive) {
+            return false;
+        }
+
+        String targetName =
+                pathParts.remove(pathParts.size() - 1);
+
+        VfsNode parentNode = resolveParts(pathParts);
+
+        if (parentNode == null || !parentNode.isDirectory()) {
+            return false;
+        }
+
+        return parentNode.getChildren().remove(targetName)
+                != null;
+    }
+
+    private boolean containsCurrentDirectory(
+            List<String> pathParts
+    ) {
+        if (pathParts.size() > currentPathParts.size()) {
+            return false;
+        }
+
+        return currentPathParts
+                .subList(0, pathParts.size())
+                .equals(pathParts);
     }
 }

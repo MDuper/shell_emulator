@@ -1,8 +1,22 @@
+help
 ls
 ls /home
 cd /home/user
 ls .
 du readme.txt
+cp readme.txt copy.txt
+ls
+du copy.txt
+rm copy.txt
+ls
+cp readme.txt /tmp
+ls /tmp
+rm /tmp/readme.txt
+cp -r docs /tmp/docs-copy
+ls /tmp/docs-copy
+du /tmp/docs-copy
+rm -r /tmp/docs-copy
+ls /tmp
 cd docs
 ls
 du .
@@ -11,4 +25,4 @@ date
 du /home
 cd /
 ls /tmp
-unknown
+rm /home/user/docs

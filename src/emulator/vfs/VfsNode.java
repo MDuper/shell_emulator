@@ -79,4 +79,25 @@ public final class VfsNode {
     public boolean isDirectory() {
         return type == VfsNodeType.DIRECTORY;
     }
+
+    public VfsNode deepCopy() {
+        VfsNode copy = new VfsNode();
+
+        copy.setType(type);
+        copy.setEncoding(encoding);
+        copy.setContent(content);
+
+        for (Map.Entry<String, VfsNode> entry
+             : children.entrySet()) {
+            String childName = entry.getKey();
+            VfsNode child = entry.getValue();
+
+            copy.getChildren().put(
+                    childName,
+                    child
+            );
+        }
+
+        return copy;
+    }
 }
