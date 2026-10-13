@@ -132,9 +132,7 @@ public final class VirtualFileSystem {
         return totalSize;
     }
 
-    public boolean copy(
-            String sourcePath,
-            String destinationPath,
+    public boolean copy(String sourcePath, String destinationPath,
             boolean recursive
     ) {
         VfsNode sourceNode = resolve(sourcePath);
@@ -142,7 +140,6 @@ public final class VirtualFileSystem {
         if (sourceNode == null) {
             return false;
         }
-
         if (sourceNode.isDirectory() && !recursive) {
             return false;
         }
@@ -165,12 +162,10 @@ public final class VirtualFileSystem {
                 || destinationName.isBlank()) {
             return false;
         }
-
         destinationParent.getChildren().put(
                 destinationName,
                 sourceNode.deepCopy()
         );
-
         return true;
     }
 

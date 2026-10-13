@@ -313,8 +313,7 @@ public final class EmulatorWindow extends JFrame {
     private boolean executeDu(String[] arguments) {
         if (arguments.length > DU_MAX_ARGUMENT_COUNT) {
             outputArea.append(
-                    "Ошибка: du принимает не более одного аргумента\n"
-            );
+                    "Ошибка: du принимает не более одного аргумента\n");
             return false;
         }
 
@@ -327,11 +326,7 @@ public final class EmulatorWindow extends JFrame {
         VfsNode targetNode = virtualFileSystem.resolve(path);
 
         if (targetNode == null) {
-            outputArea.append(
-                    "Ошибка: путь не найден: "
-                            + path
-                            + "\n"
-            );
+            outputArea.append("Ошибка: путь не найден: " + path + "\n");
             return false;
         }
 
@@ -357,66 +352,39 @@ public final class EmulatorWindow extends JFrame {
         boolean regularMode =
                 arguments.length == CP_ARGUMENT_COUNT
                         && !arguments[0].equals(RECURSIVE_OPTION);
-
         boolean recursiveMode =
                 arguments.length == CP_RECURSIVE_ARGUMENT_COUNT
                         && arguments[0].equals(RECURSIVE_OPTION);
-
         if (!regularMode && !recursiveMode) {
             outputArea.append(
                     "Ошибка: используйте cp SOURCE DESTINATION "
-                            + "или cp -r SOURCE DESTINATION\n"
-            );
+                            + "или cp -r SOURCE DESTINATION\n");
             return false;
         }
-
         int sourceIndex = recursiveMode ? 1 : 0;
         int destinationIndex = sourceIndex + 1;
-
         String sourcePath = arguments[sourceIndex];
         String destinationPath = arguments[destinationIndex];
-
-        VfsNode sourceNode =
-                virtualFileSystem.resolve(sourcePath);
-
+        VfsNode sourceNode = virtualFileSystem.resolve(sourcePath);
         if (sourceNode == null) {
-            outputArea.append(
-                    "Ошибка: исходный путь не найден: "
-                            + sourcePath
-                            + "\n"
-            );
+            outputArea.append("Ошибка: исходный путь не найден: " + sourcePath + "\n");
             return false;
         }
-
         if (sourceNode.isDirectory() && !recursiveMode) {
             outputArea.append(
                     "Ошибка: для копирования каталога "
-                            + "требуется флаг -r\n"
-            );
+                            + "требуется флаг -r\n");
             return false;
         }
-
         if (!virtualFileSystem.copy(
-                sourcePath,
-                destinationPath,
-                recursiveMode
+                sourcePath, destinationPath, recursiveMode
         )) {
             outputArea.append(
-                    "Ошибка: не удалось скопировать в "
-                            + destinationPath
-                            + "\n"
-            );
+                    "Ошибка: не удалось скопировать в " + destinationPath + "\n");
             return false;
         }
-
         outputArea.append(
-                "Скопировано: "
-                        + sourcePath
-                        + " -> "
-                        + destinationPath
-                        + "\n"
-        );
-
+                "Скопировано: " + sourcePath + " -> " + destinationPath + "\n");
         return true;
     }
 
@@ -424,56 +392,38 @@ public final class EmulatorWindow extends JFrame {
         boolean regularMode =
                 arguments.length == RM_ARGUMENT_COUNT
                     && !arguments[0].equals(RECURSIVE_OPTION);
-
         boolean recursiveMode =
                 arguments.length == RM_RECURSIVE_ARGUMENT_COUNT
                         && arguments[0].equals(RECURSIVE_OPTION);
-
         if (!regularMode && !recursiveMode) {
             outputArea.append(
-                    "Ошибка: используйте rm PATH "
-                            + "или rm -r PATH\n"
-            );
+                    "Ошибка: используйте rm PATH " + "или rm -r PATH\n");
             return false;
         }
 
         int pathIndex = recursiveMode ? 1 : 0;
         String path = arguments[pathIndex];
-
         VfsNode targetNode = virtualFileSystem.resolve(path);
-
         if (targetNode == null) {
             outputArea.append(
-                    "Ошибка: путь не найден: "
-                            + path
-                            + "\n"
-            );
+                    "Ошибка: путь не найден: " + path + "\n");
             return false;
         }
 
         if (targetNode.isDirectory() && !recursiveMode) {
             outputArea.append(
-                    "Ошибка: для удаления каталога "
-                            + "требуется флаг -r\n"
-            );
+                    "Ошибка: для удаления каталога " + "требуется флаг -r\n");
             return false;
         }
 
         if (!virtualFileSystem.remove(path, recursiveMode)) {
             outputArea.append(
-                    "Ошибка: не удалось удалить "
-                            + path
-                            + "\n"
-            );
+                    "Ошибка: не удалось удалить " + path + "\n");
             return false;
         }
-
         outputArea.append(
-                "Удалено: "
-                        + path
-                        + "\n"
+                "Удалено: " + path + "\n"
         );
-
         return true;
     }
 
