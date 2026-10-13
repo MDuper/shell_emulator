@@ -21,8 +21,7 @@ build/
 # Binary dependencies
 *.jar
 
-# Gradle Wrapper is required for building the project
-!gradle/wrapper/gradle-wrapper.jar
+gradle/wrapper/gradle-wrapper.jar
 
 # Logs
 *.log
